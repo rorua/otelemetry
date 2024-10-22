@@ -9,11 +9,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 )
 
-func newMeterProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource) (*sdkmetric.MeterProvider, error) {
-	exporter, err := otlpmetricgrpc.New(ctx,
-		otlpmetricgrpc.WithInsecure(),
-		otlpmetricgrpc.WithEndpoint(otelAgentAddr),
-	)
+func newMeterProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource, opts MetricOptions) (*sdkmetric.MeterProvider, error) {
+	exporter, err := otlpmetricgrpc.New(ctx, meterExporterOpts(otelAgentAddr, opts.ExporterOptions...)...)
 	if err != nil {
 		return nil, err
 	}
@@ -29,4 +26,17 @@ func newMeterProvider(ctx context.Context, otelAgentAddr string, res *resource.R
 	)
 
 	return provider, nil
+}
+
+func meterExporterOpts(otelAgentAddr string, opts ...otlpmetricgrpc.Option) []otlpmetricgrpc.Option {
+	options := []otlpmetricgrpc.Option{
+		otlpmetricgrpc.WithInsecure(),
+		otlpmetricgrpc.WithEndpoint(otelAgentAddr),
+	}
+
+	if len(opts) == 0 {
+		return options
+	}
+
+	return opts
 }

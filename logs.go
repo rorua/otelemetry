@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 )
 
-func newLoggerProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource) (*sdklog.LoggerProvider, error) {
+func newLoggerProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource, opts LoggerOptions) (*sdklog.LoggerProvider, error) {
 	//f, err := os.OpenFile("otel_log.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	//if err != nil {
 	//	return nil, err

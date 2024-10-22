@@ -13,25 +13,34 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func newTraceProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource) (*sdktrace.TracerProvider, *otlptrace.Exporter, error) {
-	client := otlptracegrpc.NewClient(
-		otlptracegrpc.WithInsecure(),
-		otlptracegrpc.WithEndpoint(otelAgentAddr),
-	)
-
+func newTraceProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource, opts TracerOptions) (*sdktrace.TracerProvider, error) {
+	client := otlptracegrpc.NewClient(traceClientOpts(otelAgentAddr, opts.ClientOption...)...)
 	exporter, err := otlptrace.New(ctx, client)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	bsp := sdktrace.NewBatchSpanProcessor(exporter)
+	bsp := sdktrace.NewBatchSpanProcessor(exporter, opts.BatchSpanProcessorOption...)
 	provider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithResource(res),
 		sdktrace.WithSpanProcessor(bsp),
 	)
 
-	return provider, exporter, nil
+	return provider, nil
+}
+
+func traceClientOpts(otelAgentAddr string, opts ...otlptracegrpc.Option) []otlptracegrpc.Option {
+	options := []otlptracegrpc.Option{
+		otlptracegrpc.WithInsecure(),
+		otlptracegrpc.WithEndpoint(otelAgentAddr),
+	}
+
+	if len(opts) == 0 {
+		return options
+	}
+
+	return opts
 }
 
 type Span interface {
