@@ -92,7 +92,7 @@ func New(cfg Config) (Telemetry, error) {
 	otel.SetTracerProvider(tracerProvider)
 
 	// logger provider
-	loggerProvider, err := newLoggerProvider(ctx, otelAgentAddr, res)
+	loggerProvider, err := newLoggerProvider(ctx, otelAgentAddr, res, cfg.LoggerOption)
 	handleErr(err, "failed to create the logger provider")
 
 	// Set the logger provider globally
