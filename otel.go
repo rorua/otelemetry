@@ -22,22 +22,23 @@ import (
 )
 
 type Config struct {
-	Service struct {
-		Name      string
-		Namespace string
-		Version   string
-	}
-
-	Collector struct {
-		Host string
-		Port string
-	}
-
+	Service
+	Collector
 	ResourceOptions []resource.Option
+	TracerOptions   TracerOptions
+	LoggerOption    LoggerOptions
+	MetricOptions   MetricOptions
+}
 
-	TracerOptions TracerOptions
-	LoggerOption  LoggerOptions
-	MetricOptions MetricOptions
+type Service struct {
+	Name      string
+	Namespace string
+	Version   string
+}
+
+type Collector struct {
+	Host string
+	Port string
 }
 
 type LoggerOptions struct {
@@ -199,7 +200,7 @@ func resourceOpts(cfg Config, opts []resource.Option) []resource.Option {
 	attrOption := resource.WithAttributes(
 		// the telemetry name used to display traces in backends
 		semconv.ServiceNameKey.String(cfg.Service.Name),
-		semconv.ServiceNamespaceKey.String(cfg.Service.Version),
+		semconv.ServiceNamespaceKey.String(cfg.Service.Namespace),
 		semconv.ServiceVersionKey.String(cfg.Service.Version),
 	)
 
