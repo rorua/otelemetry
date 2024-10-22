@@ -20,17 +20,21 @@ func main() {
 
 	ctx := context.Background()
 
-	cfg := otelemetry.Config{}
-	cfg.Service.Name = "my-service"
-	cfg.Service.Namespace = "my-namespace"
-	cfg.Service.Version = "1.0.0"
-	cfg.Collector.Host = "0.0.0.0"
-	cfg.Collector.Port = "4317"
-
-	cfg.ResourceOptions = []resource.Option{
-		resource.WithHost(),
-		//resource.WithProcess(),
-		resource.WithTelemetrySDK(),
+	cfg := otelemetry.Config{
+		Service: otelemetry.Service{
+			Name:      "my-service",
+			Namespace: "my-namespace",
+			Version:   "1.0.0",
+		},
+		Collector: otelemetry.Collector{
+			Host: "0.0.0.0",
+			Port: "4317",
+		},
+		ResourceOptions: []resource.Option{
+			resource.WithHost(),
+			//resource.WithProcess(),
+			resource.WithTelemetrySDK(),
+		},
 	}
 
 	var err error
