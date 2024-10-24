@@ -76,6 +76,11 @@ func New(cfg Config) (Telemetry, error) {
 		tracerProvider *sdktrace.TracerProvider
 		meterProvider  *sdkmetric.MeterProvider
 		loggerProvider *sdklog.LoggerProvider
+
+		err        error
+		otelemetry = telemetry{
+			serviceName: serviceName,
+		}
 	)
 
 	// otel collector OTEL_COLLECTOR_HOST:OTEL_COLLECTOR_PORT_GRPC
@@ -93,42 +98,44 @@ func New(cfg Config) (Telemetry, error) {
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 	otel.SetTracerProvider(tracerProvider)
 
+	otelemetry.tracerProvider = tracerProvider
+	otelemetry.tracer = tracerProvider.Tracer(serviceName, cfg.TracerOptions.TracerOption...)
+
 	// metrics
 	if cfg.WithMetrics {
 		meterProvider, err = newMeterProvider(ctx, otelAgentAddr, res, cfg.MetricOptions)
 		handleErr(err, "failed to create the collector metric exporter or provider")
 		otel.SetMeterProvider(meterProvider)
+
+		otelemetry.meterProvider = meterProvider
+		otelemetry.meter = meterProvider.Meter(serviceName, cfg.MetricOptions.MeterOptions...)
 	}
 
+	// logs
 	if cfg.WithLogs {
-		// logger provider
 		loggerProvider, err = newLoggerProvider(ctx, otelAgentAddr, res, cfg.LoggerOptions)
 		handleErr(err, "failed to create the logger provider")
 
 		// Set the logger provider globally
 		global.SetLoggerProvider(loggerProvider)
+
+		otelemetry.loggerProvider = loggerProvider
+		otelemetry.logger = loggerProvider.Logger(serviceName, cfg.LoggerOptions.LoggerOption...)
 	}
 
+	// stdout logs
 	if cfg.WithStdoutLogs {
-		// logger provider
 		loggerProvider, err = newStdoutLoggerProvider(ctx, otelAgentAddr, res, cfg.LoggerOptions)
 		handleErr(err, "failed to create the stdout logger provider")
 
 		// Set the logger provider globally
 		global.SetLoggerProvider(loggerProvider)
+
+		otelemetry.loggerProvider = loggerProvider
+		otelemetry.logger = loggerProvider.Logger(serviceName, cfg.LoggerOptions.LoggerOption...)
 	}
 
-	return &telemetry{
-		tracerProvider: tracerProvider,
-		meterProvider:  meterProvider,
-		loggerProvider: loggerProvider,
-
-		tracer: tracerProvider.Tracer(serviceName, cfg.TracerOptions.TracerOption...),
-		meter:  meterProvider.Meter(serviceName, cfg.MetricOptions.MeterOptions...),
-		logger: loggerProvider.Logger(serviceName, cfg.LoggerOptions.LoggerOption...),
-
-		serviceName: serviceName,
-	}, nil
+	return &otelemetry, nil
 }
 
 func handleErr(err error, s string) {
@@ -172,9 +179,6 @@ func (t *telemetry) Tracer() trace.Tracer {
 }
 
 func (t *telemetry) Meter() metric.Meter {
-	if t.meter == nil {
-		return nil
-	}
 	return t.meter
 }
 
@@ -220,7 +224,7 @@ func (t *telemetry) SpanFromContext(ctx context.Context) Span {
 }
 
 func (t *telemetry) Log() Log {
-	if t.logger == nil {
+	if t.loggerProvider == nil {
 		return nil
 	}
 
