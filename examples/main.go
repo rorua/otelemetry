@@ -35,6 +35,9 @@ func main() {
 			//resource.WithProcess(),
 			resource.WithTelemetrySDK(),
 		},
+		WithMetrics:    false,
+		WithLogs:       false,
+		WithStdoutLogs: true,
 	}
 
 	var err error
@@ -68,14 +71,14 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	sleep := rng.Int63n(1000)
 	time.Sleep(time.Duration(sleep) * time.Millisecond)
 
-	requestCount, err := telemetry.Meter().Float64Counter("example_request_count")
-	if err != nil {
-		panic(err)
-	}
+	//requestCount, err := telemetry.Meter().Float64Counter("example_request_count")
+	//if err != nil {
+	//	panic(err)
+	//}
 
-	requestCount.Add(ctx, 1)
+	//requestCount.Add(ctx, 1)
 
-	telemetry.Log().Info(ctx, "Request processed "+fmt.Sprintf("Sleep: %dms", sleep))
+	//telemetry.Log().Info(ctx, "Request processed "+fmt.Sprintf("Sleep: %dms", sleep))
 
 	span.AddEvent("sleep event", attribute.Int64("sleep", sleep))
 

@@ -17,16 +17,18 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
 type Config struct {
 	Service
 	Collector
+	WithMetrics     bool
+	WithLogs        bool
+	WithStdoutLogs  bool
 	ResourceOptions []resource.Option
 	TracerOptions   TracerOptions
-	LoggerOption    LoggerOptions
+	LoggerOptions   LoggerOptions
 	MetricOptions   MetricOptions
 }
 
@@ -70,6 +72,10 @@ func New(cfg Config) (Telemetry, error) {
 		serviceName       = cfg.Service.Name
 		otelCollectorHost = cfg.Collector.Host
 		otelCollectorPort = cfg.Collector.Port
+
+		tracerProvider *sdktrace.TracerProvider
+		meterProvider  *sdkmetric.MeterProvider
+		loggerProvider *sdklog.LoggerProvider
 	)
 
 	// otel collector OTEL_COLLECTOR_HOST:OTEL_COLLECTOR_PORT_GRPC
@@ -79,25 +85,38 @@ func New(cfg Config) (Telemetry, error) {
 	res, err := resource.New(ctx, resourceOpts(cfg, cfg.ResourceOptions)...)
 	handleErr(err, "failed to create resource")
 
-	// metrics
-	meterProvider, err := newMeterProvider(ctx, otelAgentAddr, res, cfg.MetricOptions)
-	handleErr(err, "failed to create the collector metric exporter or provider")
-	otel.SetMeterProvider(meterProvider)
-
 	// traces
-	tracerProvider, err := newTraceProvider(ctx, otelAgentAddr, res, cfg.TracerOptions)
+	tracerProvider, err = newTraceProvider(ctx, otelAgentAddr, res, cfg.TracerOptions)
 	handleErr(err, "failed to create the collector trace exporter or provider")
 
 	// set global propagator to tracecontext (the default is no-op).
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 	otel.SetTracerProvider(tracerProvider)
 
-	// logger provider
-	loggerProvider, err := newLoggerProvider(ctx, otelAgentAddr, res, cfg.LoggerOption)
-	handleErr(err, "failed to create the logger provider")
+	// metrics
+	if cfg.WithMetrics {
+		meterProvider, err = newMeterProvider(ctx, otelAgentAddr, res, cfg.MetricOptions)
+		handleErr(err, "failed to create the collector metric exporter or provider")
+		otel.SetMeterProvider(meterProvider)
+	}
 
-	// Set the logger provider globally
-	global.SetLoggerProvider(loggerProvider)
+	if cfg.WithLogs {
+		// logger provider
+		loggerProvider, err = newLoggerProvider(ctx, otelAgentAddr, res, cfg.LoggerOptions)
+		handleErr(err, "failed to create the logger provider")
+
+		// Set the logger provider globally
+		global.SetLoggerProvider(loggerProvider)
+	}
+
+	if cfg.WithStdoutLogs {
+		// logger provider
+		loggerProvider, err = newStdoutLoggerProvider(ctx, otelAgentAddr, res, cfg.LoggerOptions)
+		handleErr(err, "failed to create the stdout logger provider")
+
+		// Set the logger provider globally
+		global.SetLoggerProvider(loggerProvider)
+	}
 
 	return &telemetry{
 		tracerProvider: tracerProvider,
@@ -106,7 +125,7 @@ func New(cfg Config) (Telemetry, error) {
 
 		tracer: tracerProvider.Tracer(serviceName, cfg.TracerOptions.TracerOption...),
 		meter:  meterProvider.Meter(serviceName, cfg.MetricOptions.MeterOptions...),
-		logger: loggerProvider.Logger(serviceName, cfg.LoggerOption.LoggerOption...),
+		logger: loggerProvider.Logger(serviceName, cfg.LoggerOptions.LoggerOption...),
 
 		serviceName: serviceName,
 	}, nil
@@ -122,6 +141,7 @@ type Telemetry interface {
 	StartSpan(ctx context.Context, name string, opts ...trace.SpanStartOption) (context.Context, Span)
 	SpanFromContext(ctx context.Context) Span
 
+	//Trace() Trace
 	Log() Log
 
 	Shutdown(ctx context.Context) error
@@ -152,6 +172,9 @@ func (t *telemetry) Tracer() trace.Tracer {
 }
 
 func (t *telemetry) Meter() metric.Meter {
+	if t.meter == nil {
+		return nil
+	}
 	return t.meter
 }
 
@@ -168,12 +191,16 @@ func (t *telemetry) Shutdown(ctx context.Context) error {
 		otel.Handle(err)
 	}
 
-	if err := t.meterProvider.Shutdown(cxt); err != nil {
-		otel.Handle(err)
+	if t.meterProvider != nil {
+		if err := t.meterProvider.Shutdown(cxt); err != nil {
+			otel.Handle(err)
+		}
 	}
 
-	if err := t.loggerProvider.Shutdown(cxt); err != nil {
-		otel.Handle(err)
+	if t.loggerProvider != nil {
+		if err := t.loggerProvider.Shutdown(cxt); err != nil {
+			otel.Handle(err)
+		}
 	}
 
 	return nil
@@ -193,24 +220,9 @@ func (t *telemetry) SpanFromContext(ctx context.Context) Span {
 }
 
 func (t *telemetry) Log() Log {
-	return &otellog{log: t.Logger()}
-}
-
-func resourceOpts(cfg Config, opts []resource.Option) []resource.Option {
-	attrOption := resource.WithAttributes(
-		// the telemetry name used to display traces in backends
-		semconv.ServiceNameKey.String(cfg.Service.Name),
-		semconv.ServiceNamespaceKey.String(cfg.Service.Namespace),
-		semconv.ServiceVersionKey.String(cfg.Service.Version),
-	)
-
-	if len(opts) == 0 {
-		return []resource.Option{
-			attrOption,
-		}
+	if t.logger == nil {
+		return nil
 	}
 
-	opts = append(opts, attrOption)
-
-	return opts
+	return &otellog{log: t.Logger()}
 }

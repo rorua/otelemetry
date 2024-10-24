@@ -5,29 +5,35 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/log"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
 )
 
 func newLoggerProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource, opts LoggerOptions) (*sdklog.LoggerProvider, error) {
-	//f, err := os.OpenFile("otel_log.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//
-	//exporter, err := stdoutlog.New(
-	//	stdoutlog.WithWriter(f),
-	//	//stdoutlog.WithPrettyPrint(),
-	//)
-	//if err != nil {
-	//	return nil, err
-	//}
 
 	exporter, err := otlploggrpc.New(ctx,
 		otlploggrpc.WithInsecure(),
 		otlploggrpc.WithEndpoint(otelAgentAddr),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	provider := sdklog.NewLoggerProvider(
+		sdklog.WithResource(res),
+		sdklog.WithProcessor(sdklog.NewBatchProcessor(exporter)),
+	)
+
+	return provider, nil
+}
+
+func newStdoutLoggerProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource, opts LoggerOptions) (*sdklog.LoggerProvider, error) {
+
+	exporter, err := stdoutlog.New(
+		//stdoutlog.WithWriter(f),
+		//stdoutlog.WithPrettyPrint(),
 	)
 	if err != nil {
 		return nil, err
