@@ -17,8 +17,8 @@ github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 h1:asbCHRVmodnJTuQ3qamDwqVOIjw
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0/go.mod h1:ggCgvZ2r7uOoQjOyu2Y1NhHmEPPzzuhWgcza5M1Ji1I=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/rorua/otelemetry v0.0.0-20241024053828-70296636f177 h1:RSZUda1QbPT9/FcQaaMk2V3NoPGnayFu7preuqb7YYE=
-github.com/rorua/otelemetry v0.0.0-20241024053828-70296636f177/go.mod h1:HVggjMI6O3Dj9Os//RD77806m5CO69IkHIjRVa4UhMg=
+github.com/rorua/otelemetry v0.0.0-20241024071852-6ac8b4547f27 h1:DN4uLj5ECVr9GDZJnVlfvnqTl0CDMw2u9f+9Fm+7Z8c=
+github.com/rorua/otelemetry v0.0.0-20241024071852-6ac8b4547f27/go.mod h1:/NlkDQ76zBfpzaO5b3d71lql2IbbUicrZDVuwE9pHTY=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 h1:UP6IpuHFkUgOQL9FFQFrZ+5LiwhhYRbi7VZSIx6Nj5s=

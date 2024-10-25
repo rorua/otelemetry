@@ -11,6 +11,19 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 )
 
+type Log interface {
+	Log() log.Logger // original logger
+	Debug(ctx context.Context, msg string, kv ...log.KeyValue)
+	Info(ctx context.Context, msg string, kv ...log.KeyValue)
+	Warning(ctx context.Context, msg string, kv ...log.KeyValue)
+	Error(ctx context.Context, msg string, kv ...log.KeyValue)
+	Fatal(ctx context.Context, msg string, kv ...log.KeyValue)
+}
+
+type otellog struct {
+	log log.Logger
+}
+
 func newLoggerProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource, opts LoggerOptions) (*sdklog.LoggerProvider, error) {
 
 	exporter, err := otlploggrpc.New(ctx,
@@ -32,8 +45,8 @@ func newLoggerProvider(ctx context.Context, otelAgentAddr string, res *resource.
 func newStdoutLoggerProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource, opts LoggerOptions) (*sdklog.LoggerProvider, error) {
 
 	exporter, err := stdoutlog.New(
-		//stdoutlog.WithWriter(f),
-		//stdoutlog.WithPrettyPrint(),
+	//stdoutlog.WithWriter(f),
+	//stdoutlog.WithPrettyPrint(),
 	)
 	if err != nil {
 		return nil, err
@@ -55,16 +68,8 @@ const (
 	Fatal = "FATAL"
 )
 
-type Log interface {
-	Debug(ctx context.Context, msg string, kv ...log.KeyValue)
-	Info(ctx context.Context, msg string, kv ...log.KeyValue)
-	Warning(ctx context.Context, msg string, kv ...log.KeyValue)
-	Error(ctx context.Context, msg string, kv ...log.KeyValue)
-	Fatal(ctx context.Context, msg string, kv ...log.KeyValue)
-}
-
-type otellog struct {
-	log log.Logger
+func (l *otellog) Log() log.Logger {
+	return l.log
 }
 
 func (l *otellog) Debug(ctx context.Context, msg string, kv ...log.KeyValue) {

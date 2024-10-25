@@ -27,7 +27,7 @@ func main() {
 			Version:   "1.0.0",
 		},
 		Collector: otelemetry.Collector{
-			Host: "0.0.0.0",
+			Host: "192.168.14.237",
 			Port: "4317",
 		},
 		ResourceOptions: []resource.Option{
@@ -35,9 +35,9 @@ func main() {
 			//resource.WithProcess(),
 			resource.WithTelemetrySDK(),
 		},
-		WithMetrics:    false,
-		WithLogs:       false,
-		WithStdoutLogs: true,
+		WithMetrics: true,
+		WithLogs:    true,
+		//WithStdoutLogs: true,
 	}
 
 	var err error
@@ -65,20 +65,20 @@ var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
 func handler(w http.ResponseWriter, req *http.Request) {
 
 	ctx := req.Context()
-	ctx, span := telemetry.StartSpan(ctx, "handler")
+	ctx, span := telemetry.Trace().StartSpan(ctx, "handler")
 	defer span.End()
 
 	sleep := rng.Int63n(1000)
 	time.Sleep(time.Duration(sleep) * time.Millisecond)
 
-	//requestCount, err := telemetry.Meter().Float64Counter("example_request_count")
-	//if err != nil {
-	//	panic(err)
-	//}
+	requestCount, err := telemetry.Metric().Float64Counter("example_request_count")
+	if err != nil {
+		panic(err)
+	}
 
-	//requestCount.Add(ctx, 1)
+	requestCount.Add(ctx, 1)
 
-	//telemetry.Log().Info(ctx, "Request processed "+fmt.Sprintf("Sleep: %dms", sleep))
+	telemetry.Log().Info(ctx, "Request processed "+fmt.Sprintf("Sleep: %dms", sleep))
 
 	span.AddEvent("sleep event", attribute.Int64("sleep", sleep))
 

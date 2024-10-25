@@ -6,9 +6,6 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/metric"
@@ -20,49 +17,62 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type Config struct {
-	Service
-	Collector
-	WithMetrics     bool
-	WithLogs        bool
-	WithStdoutLogs  bool
-	ResourceOptions []resource.Option
-	TracerOptions   TracerOptions
-	LoggerOptions   LoggerOptions
-	MetricOptions   MetricOptions
+// Telemetry implements the OpenTelemetry API.
+// t.Trace().StartSpan(ctx, "name")
+// t.Log().Info(ctx, "message")
+// t.Metric().NewInt64Counter("name")
+type Telemetry interface {
+	Trace() Trace
+	Log() Log
+	Metric() Metric
+
+	Shutdown(ctx context.Context) error
 }
 
-type Service struct {
-	Name      string
-	Namespace string
-	Version   string
+type telemetry struct {
+	tracerProvider *sdktrace.TracerProvider
+	meterProvider  *sdkmetric.MeterProvider
+	loggerProvider *sdklog.LoggerProvider
+	tracer         trace.Tracer
+	meter          metric.Meter
+	logger         log.Logger
+	serviceName    string
 }
 
-type Collector struct {
-	Host string
-	Port string
+func (t *telemetry) Trace() Trace {
+	return &oteltrace{trace: t.tracer}
 }
 
-type LoggerOptions struct {
-	ExporterOption []otlploggrpc.Option
-	ProviderOption []sdklog.LoggerProviderOption
-
-	LoggerOption []log.LoggerOption
+func (t *telemetry) Log() Log {
+	return &otellog{log: t.logger}
 }
 
-type TracerOptions struct {
-	ClientOption             []otlptracegrpc.Option
-	ProviderOption           []sdktrace.TracerProviderOption
-	BatchSpanProcessorOption []sdktrace.BatchSpanProcessorOption
-
-	TracerOption []trace.TracerOption
+func (t *telemetry) Metric() Metric {
+	return &otelmetric{metric: t.meter}
 }
 
-type MetricOptions struct {
-	ExporterOptions []otlpmetricgrpc.Option
-	ProviderOptions []sdkmetric.Option
+func (t *telemetry) Shutdown(ctx context.Context) error {
+	cxt, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
 
-	MeterOptions []metric.MeterOption
+	// pushes any last exports to the receiver
+	if err := t.tracerProvider.Shutdown(cxt); err != nil {
+		otel.Handle(err)
+	}
+
+	if t.meterProvider != nil {
+		if err := t.meterProvider.Shutdown(cxt); err != nil {
+			otel.Handle(err)
+		}
+	}
+
+	if t.loggerProvider != nil {
+		if err := t.loggerProvider.Shutdown(cxt); err != nil {
+			otel.Handle(err)
+		}
+	}
+
+	return nil
 }
 
 func New(cfg Config) (Telemetry, error) {
@@ -136,97 +146,4 @@ func New(cfg Config) (Telemetry, error) {
 	}
 
 	return &otelemetry, nil
-}
-
-func handleErr(err error, s string) {
-	if err != nil {
-		panic(fmt.Sprintf("%s: %v", s, err))
-	}
-}
-
-type Telemetry interface {
-	StartSpan(ctx context.Context, name string, opts ...trace.SpanStartOption) (context.Context, Span)
-	SpanFromContext(ctx context.Context) Span
-
-	//Trace() Trace
-	Log() Log
-
-	Shutdown(ctx context.Context) error
-
-	providers
-}
-
-type providers interface {
-	Tracer() trace.Tracer
-	Meter() metric.Meter
-	Logger() log.Logger
-}
-
-type telemetry struct {
-	tracerProvider *sdktrace.TracerProvider
-	meterProvider  *sdkmetric.MeterProvider
-	loggerProvider *sdklog.LoggerProvider
-
-	tracer trace.Tracer
-	meter  metric.Meter
-	logger log.Logger
-
-	serviceName string
-}
-
-func (t *telemetry) Tracer() trace.Tracer {
-	return t.tracer
-}
-
-func (t *telemetry) Meter() metric.Meter {
-	return t.meter
-}
-
-func (t *telemetry) Logger() log.Logger {
-	return t.logger
-}
-
-func (t *telemetry) Shutdown(ctx context.Context) error {
-	cxt, cancel := context.WithTimeout(ctx, time.Second)
-	defer cancel()
-
-	// pushes any last exports to the receiver
-	if err := t.tracerProvider.Shutdown(cxt); err != nil {
-		otel.Handle(err)
-	}
-
-	if t.meterProvider != nil {
-		if err := t.meterProvider.Shutdown(cxt); err != nil {
-			otel.Handle(err)
-		}
-	}
-
-	if t.loggerProvider != nil {
-		if err := t.loggerProvider.Shutdown(cxt); err != nil {
-			otel.Handle(err)
-		}
-	}
-
-	return nil
-}
-
-func (t *telemetry) StartSpan(ctx context.Context, name string, opts ...trace.SpanStartOption) (context.Context, Span) {
-	ctx, span := t.Tracer().Start(ctx, name, opts...)
-	return ctx, &otelspan{span: span}
-}
-
-func (t *telemetry) SpanFromContext(ctx context.Context) Span {
-	span := trace.SpanFromContext(ctx)
-	if span == nil {
-		return nil
-	}
-	return &otelspan{span: span}
-}
-
-func (t *telemetry) Log() Log {
-	if t.loggerProvider == nil {
-		return nil
-	}
-
-	return &otellog{log: t.Logger()}
 }
