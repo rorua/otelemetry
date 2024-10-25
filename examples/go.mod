@@ -3,7 +3,7 @@ module github.com/rorua/otelemetry/examples
 go 1.23.1
 
 require (
-	github.com/rorua/otelemetry v0.0.0-20241025054021-674eeef56837
+	github.com/rorua/otelemetry v0.0.0-20241025104712-df147dc21f5c
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0
 	go.opentelemetry.io/otel v1.31.0
 	go.opentelemetry.io/otel/sdk v1.31.0
@@ -21,6 +21,8 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.31.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.31.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.7.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.31.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.31.0 // indirect
 	go.opentelemetry.io/otel/log v0.7.0 // indirect
 	go.opentelemetry.io/otel/metric v1.31.0 // indirect
 	go.opentelemetry.io/otel/sdk/log v0.7.0 // indirect

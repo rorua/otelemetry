@@ -17,8 +17,8 @@ github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 h1:asbCHRVmodnJTuQ3qamDwqVOIjw
 github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0/go.mod h1:ggCgvZ2r7uOoQjOyu2Y1NhHmEPPzzuhWgcza5M1Ji1I=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/rorua/otelemetry v0.0.0-20241025054021-674eeef56837 h1:Ooq7wfH7pDKYBRT7SfHvBC7+aML8x2EODis0Fb9ILyY=
-github.com/rorua/otelemetry v0.0.0-20241025054021-674eeef56837/go.mod h1:/NlkDQ76zBfpzaO5b3d71lql2IbbUicrZDVuwE9pHTY=
+github.com/rorua/otelemetry v0.0.0-20241025104712-df147dc21f5c h1:bH3hJqFUuLwqo5cSH8qSQdPKekIGOEeJe1R4SaG+G4A=
+github.com/rorua/otelemetry v0.0.0-20241025104712-df147dc21f5c/go.mod h1:Rdes4EjVJujkxjZtESeXJ1Sc2I9x9RzGcNtTGRf7uIk=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 h1:UP6IpuHFkUgOQL9FFQFrZ+5LiwhhYRbi7VZSIx6Nj5s=
@@ -35,6 +35,10 @@ go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.31.0 h1:FFeLy
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.31.0/go.mod h1:TMu73/k1CP8nBUpDLc71Wj/Kf7ZS9FK5b53VapRsP9o=
 go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.7.0 h1:TwmL3O3fRR80m8EshBrd8YydEZMcUCsZXzOUlnFohwM=
 go.opentelemetry.io/otel/exporters/stdout/stdoutlog v0.7.0/go.mod h1:tH98dDv5KPmPThswbXA0fr0Lwfs+OhK8HgaCo7PjRrk=
+go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.31.0 h1:HZgBIps9wH0RDrwjrmNa3DVbNRW60HEhdzqZFyAp3fI=
+go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.31.0/go.mod h1:RDRhvt6TDG0eIXmonAx5bd9IcwpqCkziwkOClzWKwAQ=
+go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.31.0 h1:UGZ1QwZWY67Z6BmckTU+9Rxn04m2bD3gD6Mk0OIOCPk=
+go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.31.0/go.mod h1:fcwWuDuaObkkChiDlhEpSq9+X1C0omv+s5mBtToAQ64=
 go.opentelemetry.io/otel/log v0.7.0 h1:d1abJc0b1QQZADKvfe9JqqrfmPYQCz2tUSO+0XZmuV4=
 go.opentelemetry.io/otel/log v0.7.0/go.mod h1:2jf2z7uVfnzDNknKTO9G+ahcOAyWcp1fJmk/wJjULRo=
 go.opentelemetry.io/otel/metric v1.31.0 h1:FSErL0ATQAmYHUIzSezZibnyVlft1ybhy4ozRPcF2fE=

@@ -57,7 +57,7 @@ func newTraceProvider(ctx context.Context, otelAgentAddr string, res *resource.R
 }
 
 func newStdoutTraceProvider(res *resource.Resource) (*sdktrace.TracerProvider, error) {
-	exporter, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
+	exporter, err := stdouttrace.New( /*stdouttrace.WithPrettyPrint()*/ )
 	if err != nil {
 		return nil, fmt.Errorf("creating stdout exporter: %w", err)
 	}

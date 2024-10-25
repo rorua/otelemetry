@@ -32,10 +32,10 @@ func main() {
 		},
 		ResourceOptions: []resource.Option{
 			resource.WithHost(),
-			resource.WithProcess(),
-			resource.WithTelemetrySDK(),
+			//resource.WithProcess(),
+			//resource.WithTelemetrySDK(),
 		},
-		WithMetrics: false,
+		WithMetrics: true,
 		WithLogs:    true,
 		WithTraces:  true,
 	}
@@ -82,8 +82,37 @@ func handler(w http.ResponseWriter, req *http.Request) {
 
 	span.AddEvent("sleep event", attribute.Int64("sleep", sleep))
 
+	// do some tracing with new span on other func
+	doTraceWithNewSpan(ctx)
+
+	// do some tracing with current span on other func
+	doTraceWithCurrentSpan(ctx)
+
 	if _, err := w.Write([]byte(fmt.Sprintf("Sleep: %dms", sleep))); err != nil {
 		http.Error(w, "write operation failed.", http.StatusInternalServerError)
 		return
 	}
+}
+
+func doTraceWithNewSpan(ctx context.Context) {
+	ctx, span := telemetry.Trace().StartSpan(ctx, "new span")
+	defer span.End()
+
+	sleep := rng.Int63n(100)
+	time.Sleep(time.Duration(sleep) * time.Millisecond)
+
+	span.AddEvent("event: trace with new span", attribute.Int64("sleep", sleep))
+}
+
+func doTraceWithCurrentSpan(ctx context.Context) {
+	span := telemetry.Trace().SpanFromContext(ctx)
+	if span == nil {
+		telemetry.Log().Error(ctx, "failed to get span from context")
+		return
+	}
+
+	sleep := rng.Int63n(100)
+	time.Sleep(time.Duration(sleep) * time.Millisecond)
+
+	span.AddEvent("event: trace with current span", attribute.Int64("sleep", sleep))
 }

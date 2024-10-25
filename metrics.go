@@ -126,12 +126,7 @@ func newStdoutMeterProvider(res *resource.Resource) (*sdkmetric.MeterProvider, e
 
 	provider := sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(res),
-		sdkmetric.WithReader(
-			sdkmetric.NewPeriodicReader(
-				exporter,
-				sdkmetric.WithInterval(2*time.Second),
-			),
-		),
+		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exporter)),
 	)
 
 	return provider, nil

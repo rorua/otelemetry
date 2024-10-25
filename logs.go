@@ -42,15 +42,13 @@ func newLoggerProvider(ctx context.Context, otelAgentAddr string, res *resource.
 	return provider, nil
 }
 
-func newStdoutLoggerProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource, opts LoggerOptions) (*sdklog.LoggerProvider, error) {
-
-	exporter, err := stdoutlog.New(
-	//stdoutlog.WithWriter(f),
-	//stdoutlog.WithPrettyPrint(),
-	)
+func newStdoutLoggerProvider(res *resource.Resource) (*sdklog.LoggerProvider, error) {
+	exporter, err := stdoutlog.New()
 	if err != nil {
 		return nil, err
 	}
+	//stdoutlog.WithWriter(f),
+	//stdoutlog.WithPrettyPrint(),
 
 	provider := sdklog.NewLoggerProvider(
 		sdklog.WithResource(res),
