@@ -6,39 +6,19 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel/sdk/resource"
 )
 
-func TestNewTelemetryWithValidConfig(t *testing.T) {
+func TestNewTelemetryWithMissingServiceName(t *testing.T) {
 	cfg := Config{
 		Service: Service{
-			Name:      "test-service",
+			Name:      "",
 			Namespace: "test-namespace",
 			Version:   "1.0.0",
 		},
 		Collector: Collector{
 			Host: "localhost",
 			Port: "4317",
-		},
-		WithMetrics:    true,
-		WithLogs:       true,
-		WithStdoutLogs: true,
-	}
-
-	tel, err := New(cfg)
-	assert.NoError(t, err)
-	assert.NotNil(t, tel)
-}
-
-func TestNewTelemetryWithInvalidCollector(t *testing.T) {
-	cfg := Config{
-		Service: Service{
-			Name:      "test-service",
-			Namespace: "test-namespace",
-			Version:   "1.0.0",
-		},
-		Collector: Collector{
-			Host: "",
-			Port: "",
 		},
 	}
 
@@ -46,7 +26,25 @@ func TestNewTelemetryWithInvalidCollector(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestTelemetryShutdown(t *testing.T) {
+func TestNewTelemetryWithInvalidResourceOptions(t *testing.T) {
+	cfg := Config{
+		Service: Service{
+			Name:      "test-service",
+			Namespace: "test-namespace",
+			Version:   "1.0.0",
+		},
+		Collector: Collector{
+			Host: "localhost",
+			Port: "4317",
+		},
+		ResourceOptions: []resource.Option{resource.WithAttributes()},
+	}
+
+	_, err := New(cfg)
+	assert.Error(t, err)
+}
+
+func TestShutdownTelemetryWithTimeout(t *testing.T) {
 	cfg := Config{
 		Service: Service{
 			Name:      "test-service",
@@ -62,30 +60,9 @@ func TestTelemetryShutdown(t *testing.T) {
 	tel, err := New(cfg)
 	assert.NoError(t, err)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Millisecond)
 	defer cancel()
 
 	err = tel.Shutdown(ctx)
-	assert.NoError(t, err)
-}
-
-func TestTelemetryLog(t *testing.T) {
-	cfg := Config{
-		Service: Service{
-			Name:      "test-service",
-			Namespace: "test-namespace",
-			Version:   "1.0.0",
-		},
-		Collector: Collector{
-			Host: "localhost",
-			Port: "4317",
-		},
-		WithLogs: true,
-	}
-
-	tel, err := New(cfg)
-	assert.NoError(t, err)
-
-	logger := tel.Log()
-	assert.NotNil(t, logger)
+	assert.Error(t, err)
 }

@@ -18,13 +18,23 @@ import (
 )
 
 // Telemetry implements the OpenTelemetry API.
+// It provides methods to start spans, log messages, and create metrics.
+//
+// Example:
 // t.Trace().StartSpan(ctx, "name")
 // t.Log().Info(ctx, "message")
 // t.Metric().NewInt64Counter("name")
 type Telemetry interface {
+	// Trace returns the tracer instance.
 	Trace() Trace
+
+	// Log returns the logger instance.
 	Log() Log
+
+	// Metric returns the meter instance.
 	Metric() Metric
+
+	// Shutdown gracefully shuts down the telemetry providers.
 	Shutdown(ctx context.Context) error
 }
 
@@ -76,6 +86,7 @@ func (t *telemetry) Shutdown(ctx context.Context) error {
 	return nil
 }
 
+// New creates a new Telemetry instance based on the provided configuration.
 func New(cfg Config) (Telemetry, error) {
 
 	var (
@@ -134,7 +145,7 @@ func New(cfg Config) (Telemetry, error) {
 		loggerProvider, err = newLoggerProvider(ctx, otelAgentAddr, res, cfg.LoggerOptions)
 		handleErr(err, "failed to create the logger provider")
 	} else {
-		loggerProvider, err = newStdoutLoggerProvider(ctx, otelAgentAddr, res, cfg.LoggerOptions)
+		loggerProvider, err = newStdoutLoggerProvider(res)
 		handleErr(err, "failed to create the stdout logger provider")
 	}
 
