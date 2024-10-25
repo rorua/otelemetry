@@ -32,12 +32,12 @@ func main() {
 		},
 		ResourceOptions: []resource.Option{
 			resource.WithHost(),
-			//resource.WithProcess(),
+			resource.WithProcess(),
 			resource.WithTelemetrySDK(),
 		},
-		WithMetrics: true,
+		WithMetrics: false,
 		WithLogs:    true,
-		//WithStdoutLogs: true,
+		WithTraces:  true,
 	}
 
 	var err error

@@ -25,7 +25,6 @@ type Telemetry interface {
 	Trace() Trace
 	Log() Log
 	Metric() Metric
-
 	Shutdown(ctx context.Context) error
 }
 
@@ -56,8 +55,10 @@ func (t *telemetry) Shutdown(ctx context.Context) error {
 	defer cancel()
 
 	// pushes any last exports to the receiver
-	if err := t.tracerProvider.Shutdown(cxt); err != nil {
-		otel.Handle(err)
+	if t.tracerProvider != nil {
+		if err := t.tracerProvider.Shutdown(cxt); err != nil {
+			otel.Handle(err)
+		}
 	}
 
 	if t.meterProvider != nil {
@@ -101,49 +102,46 @@ func New(cfg Config) (Telemetry, error) {
 	handleErr(err, "failed to create resource")
 
 	// traces
-	tracerProvider, err = newTraceProvider(ctx, otelAgentAddr, res, cfg.TracerOptions)
-	handleErr(err, "failed to create the collector trace exporter or provider")
+	if cfg.WithTraces {
+		tracerProvider, err = newTraceProvider(ctx, otelAgentAddr, res, cfg.TracerOptions)
+		handleErr(err, "failed to create the collector trace exporter or provider")
+	} else {
+		tracerProvider, err = newStdoutTraceProvider(res)
+		handleErr(err, "failed to create the collector trace exporter or provider")
+	}
 
 	// set global propagator to tracecontext (the default is no-op).
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 	otel.SetTracerProvider(tracerProvider)
-
 	otelemetry.tracerProvider = tracerProvider
 	otelemetry.tracer = tracerProvider.Tracer(serviceName, cfg.TracerOptions.TracerOption...)
 
 	// metrics
 	if cfg.WithMetrics {
 		meterProvider, err = newMeterProvider(ctx, otelAgentAddr, res, cfg.MetricOptions)
-		handleErr(err, "failed to create the collector metric exporter or provider")
-		otel.SetMeterProvider(meterProvider)
-
-		otelemetry.meterProvider = meterProvider
-		otelemetry.meter = meterProvider.Meter(serviceName, cfg.MetricOptions.MeterOptions...)
+		handleErr(err, "failed to create the collector metric exporter or provider - grpc")
+	} else {
+		meterProvider, err = newStdoutMeterProvider(res)
+		handleErr(err, "failed to create the collector metric exporter or provider - stdout")
 	}
 
-	// logs
+	otel.SetMeterProvider(meterProvider)
+	otelemetry.meterProvider = meterProvider
+	otelemetry.meter = meterProvider.Meter(serviceName, cfg.MetricOptions.MeterOptions...)
+
+	// logs - stdout or otlp
 	if cfg.WithLogs {
 		loggerProvider, err = newLoggerProvider(ctx, otelAgentAddr, res, cfg.LoggerOptions)
 		handleErr(err, "failed to create the logger provider")
-
-		// Set the logger provider globally
-		global.SetLoggerProvider(loggerProvider)
-
-		otelemetry.loggerProvider = loggerProvider
-		otelemetry.logger = loggerProvider.Logger(serviceName, cfg.LoggerOptions.LoggerOption...)
-	}
-
-	// stdout logs
-	if cfg.WithStdoutLogs {
+	} else {
 		loggerProvider, err = newStdoutLoggerProvider(ctx, otelAgentAddr, res, cfg.LoggerOptions)
 		handleErr(err, "failed to create the stdout logger provider")
-
-		// Set the logger provider globally
-		global.SetLoggerProvider(loggerProvider)
-
-		otelemetry.loggerProvider = loggerProvider
-		otelemetry.logger = loggerProvider.Logger(serviceName, cfg.LoggerOptions.LoggerOption...)
 	}
+
+	// Set the logger provider globally
+	global.SetLoggerProvider(loggerProvider)
+	otelemetry.loggerProvider = loggerProvider
+	otelemetry.logger = loggerProvider.Logger(serviceName, cfg.LoggerOptions.LoggerOption...)
 
 	return &otelemetry, nil
 }

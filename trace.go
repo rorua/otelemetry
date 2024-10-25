@@ -2,9 +2,11 @@ package otelemetry
 
 import (
 	"context"
+	"fmt"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
@@ -52,6 +54,20 @@ func newTraceProvider(ctx context.Context, otelAgentAddr string, res *resource.R
 	)
 
 	return provider, nil
+}
+
+func newStdoutTraceProvider(res *resource.Resource) (*sdktrace.TracerProvider, error) {
+	exporter, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
+	if err != nil {
+		return nil, fmt.Errorf("creating stdout exporter: %w", err)
+	}
+
+	tracerProvider := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(res),
+	)
+
+	return tracerProvider, nil
 }
 
 func traceClientOpts(otelAgentAddr string, opts ...otlptracegrpc.Option) []otlptracegrpc.Option {

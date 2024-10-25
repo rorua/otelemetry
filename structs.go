@@ -16,9 +16,9 @@ import (
 type Config struct {
 	Service
 	Collector
+	WithTraces      bool
 	WithMetrics     bool
 	WithLogs        bool
-	WithStdoutLogs  bool
 	ResourceOptions []resource.Option
 	TracerOptions   TracerOptions
 	LoggerOptions   LoggerOptions
