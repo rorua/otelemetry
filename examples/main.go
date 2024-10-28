@@ -47,6 +47,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/hello", otelhttp.NewHandler(http.HandlerFunc(handler), "/hello"))
+	mux.Handle("/hello-to-demo", otelhttp.NewHandler(http.HandlerFunc(handler2), "hello-to-demo"))
 	server := &http.Server{
 		Addr:              ":7080",
 		Handler:           mux,
@@ -121,4 +122,66 @@ func getResources() []resource.Option {
 		resource.WithProcess(),
 		resource.WithContainer(),
 	}
+}
+
+//func createProducerSpan(ctx context.Context, msg *sarama.ProducerMessage) trace.Span {
+//	spanContext, span := tracer.Start(
+//		ctx,
+//		fmt.Sprintf("%s publish", msg.Topic),
+//		trace.WithSpanKind(trace.SpanKindProducer),
+//		trace.WithAttributes(
+//			semconv.PeerService("kafka"),
+//			semconv.NetworkTransportTCP,
+//			semconv.MessagingSystemKafka,
+//			semconv.MessagingDestinationName(msg.Topic),
+//			semconv.MessagingOperationPublish,
+//			semconv.MessagingKafkaDestinationPartition(int(msg.Partition)),
+//		),
+//	)
+//
+//	carrier := propagation.MapCarrier{}
+//	propagator := otel.GetTextMapPropagator()
+//	propagator.Inject(spanContext, carrier)
+//
+//	for key, value := range carrier {
+//		msg.Headers = append(msg.Headers, sarama.RecordHeader{Key: []byte(key), Value: []byte(value)})
+//	}
+//
+//	return span
+//}
+
+func handler2(w http.ResponseWriter, req *http.Request) {
+
+	ctx, span := telemetry.Trace().StartSpan(context.Background(), "ExecuteRequest")
+	makeRequest(ctx)
+	span.End()
+
+	if _, err := w.Write([]byte(fmt.Sprintf("Request send"))); err != nil {
+		http.Error(w, "write operation failed.", http.StatusInternalServerError)
+		return
+	}
+}
+
+func makeRequest(ctx context.Context) {
+
+	demoServerAddr := "http://localhost:9006/api/v1/hello-example"
+
+	// Trace an HTTP client by wrapping the transport
+	client := http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
+
+	// Make sure we pass the context to the request to avoid broken traces.
+	req, err := http.NewRequestWithContext(ctx, "GET", demoServerAddr, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	// All requests made with this client will create spans.
+	res, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	res.Body.Close()
 }
