@@ -12,6 +12,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var telemetry otelemetry.Telemetry
@@ -30,14 +31,10 @@ func main() {
 			Host: "192.168.14.237",
 			Port: "4317",
 		},
-		ResourceOptions: []resource.Option{
-			resource.WithHost(),
-			//resource.WithProcess(),
-			//resource.WithTelemetrySDK(),
-		},
-		WithMetrics: true,
-		WithLogs:    true,
-		WithTraces:  true,
+		ResourceOptions: getResources(),
+		WithMetrics:     true,
+		WithLogs:        true,
+		WithTraces:      true,
 	}
 
 	var err error
@@ -65,7 +62,7 @@ var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
 func handler(w http.ResponseWriter, req *http.Request) {
 
 	ctx := req.Context()
-	ctx, span := telemetry.Trace().StartSpan(ctx, "handler")
+	ctx, span := telemetry.Trace().StartSpan(ctx, "handler", trace.WithSpanKind(trace.SpanKindInternal))
 	defer span.End()
 
 	sleep := rng.Int63n(1000)
@@ -115,4 +112,13 @@ func doTraceWithCurrentSpan(ctx context.Context) {
 	time.Sleep(time.Duration(sleep) * time.Millisecond)
 
 	span.AddEvent("event: trace with current span", attribute.Int64("sleep", sleep))
+}
+
+func getResources() []resource.Option {
+	return []resource.Option{
+		resource.WithHost(),
+		resource.WithOS(),
+		resource.WithProcess(),
+		resource.WithContainer(),
+	}
 }

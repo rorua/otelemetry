@@ -13,6 +13,7 @@ import (
 
 type Metric interface {
 	Metric() metric.Meter
+
 	Int64Counter(name string, options ...metric.Int64CounterOption) (metric.Int64Counter, error)
 	Int64UpDownCounter(name string, options ...metric.Int64UpDownCounterOption) (metric.Int64UpDownCounter, error)
 	Int64Histogram(name string, options ...metric.Int64HistogramOption) (metric.Int64Histogram, error)
@@ -26,7 +27,6 @@ type Metric interface {
 	Float64Gauge(name string, options ...metric.Float64GaugeOption) (metric.Float64Gauge, error)
 	Float64ObservableCounter(name string, options ...metric.Float64ObservableCounterOption) (metric.Float64ObservableCounter, error)
 	Float64ObservableUpDownCounter(name string, options ...metric.Float64ObservableUpDownCounterOption) (metric.Float64ObservableUpDownCounter, error)
-
 	Float64ObservableGauge(name string, options ...metric.Float64ObservableGaugeOption) (metric.Float64ObservableGauge, error)
 	RegisterCallback(f metric.Callback, instruments ...metric.Observable) (metric.Registration, error)
 }

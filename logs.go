@@ -13,6 +13,7 @@ import (
 
 type Log interface {
 	Log() log.Logger // original logger
+
 	Debug(ctx context.Context, msg string, kv ...log.KeyValue)
 	Info(ctx context.Context, msg string, kv ...log.KeyValue)
 	Warning(ctx context.Context, msg string, kv ...log.KeyValue)

@@ -21,6 +21,8 @@ github.com/rorua/otelemetry v0.0.0-20241025104712-df147dc21f5c h1:bH3hJqFUuLwqo5
 github.com/rorua/otelemetry v0.0.0-20241025104712-df147dc21f5c/go.mod h1:Rdes4EjVJujkxjZtESeXJ1Sc2I9x9RzGcNtTGRf7uIk=
 github.com/rorua/otelemetry v0.0.0-20241025112042-3e0529498db3 h1:HuJ/kG+mhXaA1OCGoNCUBIGhhassUS7EBp1m1Ez7UtY=
 github.com/rorua/otelemetry v0.0.0-20241025112042-3e0529498db3/go.mod h1:Rdes4EjVJujkxjZtESeXJ1Sc2I9x9RzGcNtTGRf7uIk=
+github.com/rorua/otelemetry v0.0.0-20241025115254-a07d8f8b4b38 h1:/cKJWkLJ8XDYZR0mR9pdS/VBif67uYWECiT+tDpokKE=
+github.com/rorua/otelemetry v0.0.0-20241025115254-a07d8f8b4b38/go.mod h1:Rdes4EjVJujkxjZtESeXJ1Sc2I9x9RzGcNtTGRf7uIk=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0 h1:UP6IpuHFkUgOQL9FFQFrZ+5LiwhhYRbi7VZSIx6Nj5s=

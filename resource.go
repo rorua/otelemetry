@@ -1,25 +1,32 @@
 package otelemetry
 
 import (
+	"context"
+
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
+	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
-func resourceOpts(cfg Config, opts []resource.Option) []resource.Option {
-	attrOption := resource.WithAttributes(
-		// the telemetry name used to display traces in backends
+func newResource(ctx context.Context, cfg Config) (*sdkresource.Resource, error) {
+	attrs := []attribute.KeyValue{
 		semconv.ServiceNameKey.String(cfg.Service.Name),
 		semconv.ServiceNamespaceKey.String(cfg.Service.Namespace),
 		semconv.ServiceVersionKey.String(cfg.Service.Version),
-	)
+	}
+	extraRes, _ := resource.New(ctx, resourceOpts(cfg.ResourceOptions, attrs))
+	return sdkresource.Merge(extraRes, resource.Default())
+}
 
-	if len(opts) == 0 {
-		return []resource.Option{
-			attrOption,
-		}
+func resourceOpts(options []sdkresource.Option, attrs []attribute.KeyValue) sdkresource.Option {
+	opts := []sdkresource.Option{
+		sdkresource.WithAttributes(attrs...),
 	}
 
-	opts = append(opts, attrOption)
+	if len(options) > 0 {
+		opts = append(opts, options...)
+	}
 
-	return opts
+	return sdkresource.WithAttributes(attrs...)
 }

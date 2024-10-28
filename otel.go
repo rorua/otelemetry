@@ -12,7 +12,6 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -109,8 +108,8 @@ func New(cfg Config) (Telemetry, error) {
 	otelAgentAddr := fmt.Sprintf("%s:%s", otelCollectorHost, otelCollectorPort)
 
 	// resource
-	res, err := resource.New(ctx, resourceOpts(cfg, cfg.ResourceOptions)...)
-	handleErr(err, "failed to create resource")
+	res, err := newResource(ctx, cfg)
+	handleErr(err, "failed to create sdkresource")
 
 	// traces
 	if cfg.WithTraces {

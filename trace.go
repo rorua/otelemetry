@@ -14,8 +14,12 @@ import (
 
 type Trace interface {
 	Trace() trace.Tracer // original trace
+
 	StartSpan(ctx context.Context, name string, opts ...trace.SpanStartOption) (context.Context, Span)
 	SpanFromContext(ctx context.Context) Span
+
+	ContextWithSpan(ctx context.Context, span trace.Span) context.Context
+	ContextWithRemoteSpanContext(ctx context.Context, span trace.Span) context.Context
 }
 
 type oteltrace struct {
@@ -37,6 +41,14 @@ func (t *oteltrace) SpanFromContext(ctx context.Context) Span {
 		return nil
 	}
 	return &otelspan{span: span}
+}
+
+func (t *oteltrace) ContextWithSpan(ctx context.Context, span trace.Span) context.Context {
+	return trace.ContextWithSpan(ctx, span)
+}
+
+func (t *oteltrace) ContextWithRemoteSpanContext(ctx context.Context, span trace.Span) context.Context {
+	return trace.ContextWithRemoteSpanContext(ctx, span.SpanContext())
 }
 
 func newTraceProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource, opts TracerOptions) (*sdktrace.TracerProvider, error) {

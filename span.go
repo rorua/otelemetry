@@ -16,6 +16,7 @@ type Span interface {
 	End(opts ...trace.SpanEndOption) // aka Finish()
 	RecordError(err error, kv ...attribute.KeyValue)
 	TraceID() string
+	SpanID() string
 }
 
 type otelspan struct {
@@ -52,4 +53,8 @@ func (s *otelspan) End(opts ...trace.SpanEndOption) {
 
 func (s *otelspan) TraceID() string {
 	return s.span.SpanContext().TraceID().String()
+}
+
+func (s *otelspan) SpanID() string {
+	return s.span.SpanContext().SpanID().String()
 }
