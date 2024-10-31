@@ -124,32 +124,6 @@ func getResources() []resource.Option {
 	}
 }
 
-//func createProducerSpan(ctx context.Context, msg *sarama.ProducerMessage) trace.Span {
-//	spanContext, span := tracer.Start(
-//		ctx,
-//		fmt.Sprintf("%s publish", msg.Topic),
-//		trace.WithSpanKind(trace.SpanKindProducer),
-//		trace.WithAttributes(
-//			semconv.PeerService("kafka"),
-//			semconv.NetworkTransportTCP,
-//			semconv.MessagingSystemKafka,
-//			semconv.MessagingDestinationName(msg.Topic),
-//			semconv.MessagingOperationPublish,
-//			semconv.MessagingKafkaDestinationPartition(int(msg.Partition)),
-//		),
-//	)
-//
-//	carrier := propagation.MapCarrier{}
-//	propagator := otel.GetTextMapPropagator()
-//	propagator.Inject(spanContext, carrier)
-//
-//	for key, value := range carrier {
-//		msg.Headers = append(msg.Headers, sarama.RecordHeader{Key: []byte(key), Value: []byte(value)})
-//	}
-//
-//	return span
-//}
-
 func handler2(w http.ResponseWriter, req *http.Request) {
 
 	ctx, span := telemetry.Trace().StartSpan(context.Background(), "ExecuteRequest")
@@ -185,3 +159,12 @@ func makeRequest(ctx context.Context) {
 
 	res.Body.Close()
 }
+
+//	carrier := propagation.MapCarrier{}
+//	propagator := otel.GetTextMapPropagator()
+//	propagator.Inject(spanContext, carrier)
+//
+//	for key, value := range carrier {
+//		msg.Headers = append(msg.Headers, sarama.RecordHeader{Key: []byte(key), Value: []byte(value)})
+//	}
+//

@@ -8,10 +8,12 @@ import (
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/resource"
+	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 )
 
+// Metric interface provides methods for creating and managing various types of metrics.
 type Metric interface {
+	// Metric returns the underlying OpenTelemetry meter.
 	Metric() metric.Meter
 
 	Int64Counter(name string, options ...metric.Int64CounterOption) (metric.Int64Counter, error)
@@ -31,6 +33,7 @@ type Metric interface {
 	RegisterCallback(f metric.Callback, instruments ...metric.Observable) (metric.Registration, error)
 }
 
+// otelmetric is an implementation of the Metric interface using OpenTelemetry.
 type otelmetric struct {
 	metric metric.Meter
 }
@@ -99,7 +102,7 @@ func (m *otelmetric) RegisterCallback(f metric.Callback, instruments ...metric.O
 	return m.metric.RegisterCallback(f, instruments...)
 }
 
-func newMeterProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource, opts MetricOptions) (*sdkmetric.MeterProvider, error) {
+func newMeterProvider(ctx context.Context, otelAgentAddr string, res *sdkresource.Resource, opts MetricOptions) (*sdkmetric.MeterProvider, error) {
 	exporter, err := otlpmetricgrpc.New(ctx, meterExporterOpts(otelAgentAddr, opts.ExporterOptions...)...)
 	if err != nil {
 		return nil, err
@@ -118,7 +121,7 @@ func newMeterProvider(ctx context.Context, otelAgentAddr string, res *resource.R
 	return provider, nil
 }
 
-func newStdoutMeterProvider(res *resource.Resource) (*sdkmetric.MeterProvider, error) {
+func newStdoutMeterProvider(res *sdkresource.Resource) (*sdkmetric.MeterProvider, error) {
 	exporter, err := stdoutmetric.New()
 	if err != nil {
 		return nil, err
