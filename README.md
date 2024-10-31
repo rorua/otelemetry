@@ -46,24 +46,35 @@ func main() {
 	tracer := tel.Trace().Tracer()
 	meter := tel.Metric().Meter()
 	logger := tel.Log().Logger()
+}	
+```
 
-	// Example usage of tracer and span
-	ctx, span := tracer.Start(context.Background(), "example-span")
-	defer span.End()
-	
-	span.AddEvent("example event", attribute.String("key", "value"))
+Example usage of tracer and span:
+```go
+// Example usage of tracer and span
+ctx, span := tracer.Start(context.Background(), "example-span")
+defer span.End()
 
-    // Example usage meter
-    counter, err := meter.Float64Counter("example_counter")
-    if err != nil {
-        panic(err)
-    }
-    counter.Add(ctx, 1)
-	
-	// Example usage of logger
-	logger.Info(ctx, "log message", attribute.String("key", "value"))
+span.AddEvent("example event", attribute.String("key", "value"))
+```
+
+Example usage meter:
+
+```go
+// Example usage meter
+counter, err := meter.Float64Counter("example_counter")
+if err != nil {
+    panic(err)
 }
 
+counter.Add(ctx, 1)
+```
+
+Example usage of logger:
+
+```go
+// Example usage of logger
+logger.Info(ctx, "log message", attribute.String("key", "value"))
 ```
 
 ### Contributing

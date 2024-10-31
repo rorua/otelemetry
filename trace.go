@@ -7,21 +7,28 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
-	"go.opentelemetry.io/otel/sdk/resource"
+	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
 
+// Trace interface provides methods for tracing operations.
 type Trace interface {
+	// Trace returns the original tracer.
 	Trace() trace.Tracer // original trace
 
+	// StartSpan starts a new span with the given name and options.
 	StartSpan(ctx context.Context, name string, opts ...trace.SpanStartOption) (context.Context, Span)
+	// SpanFromContext retrieves the span from the given context.
 	SpanFromContext(ctx context.Context) Span
 
+	// ContextWithSpan returns a new context with the given span.
 	ContextWithSpan(ctx context.Context, span trace.Span) context.Context
+	// ContextWithRemoteSpanContext returns a new context with the remote span context.
 	ContextWithRemoteSpanContext(ctx context.Context, span trace.Span) context.Context
 }
 
+// oteltrace is an implementation of the Trace interface using OpenTelemetry.
 type oteltrace struct {
 	trace trace.Tracer
 }
@@ -51,7 +58,7 @@ func (t *oteltrace) ContextWithRemoteSpanContext(ctx context.Context, span trace
 	return trace.ContextWithRemoteSpanContext(ctx, span.SpanContext())
 }
 
-func newTraceProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource, opts TracerOptions) (*sdktrace.TracerProvider, error) {
+func newTraceProvider(ctx context.Context, otelAgentAddr string, res *sdkresource.Resource, opts TracerOptions) (*sdktrace.TracerProvider, error) {
 	client := otlptracegrpc.NewClient(traceClientOpts(otelAgentAddr, opts.ClientOption...)...)
 	exporter, err := otlptrace.New(ctx, client)
 	if err != nil {
@@ -68,7 +75,7 @@ func newTraceProvider(ctx context.Context, otelAgentAddr string, res *resource.R
 	return provider, nil
 }
 
-func newStdoutTraceProvider(res *resource.Resource) (*sdktrace.TracerProvider, error) {
+func newStdoutTraceProvider(res *sdkresource.Resource) (*sdktrace.TracerProvider, error) {
 	exporter, err := stdouttrace.New( /*stdouttrace.WithPrettyPrint()*/ )
 	if err != nil {
 		return nil, fmt.Errorf("creating stdout exporter: %w", err)

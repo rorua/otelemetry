@@ -8,10 +8,12 @@ import (
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/log"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
-	"go.opentelemetry.io/otel/sdk/resource"
+	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 )
 
+// Log interface provides methods for logging operations.
 type Log interface {
+	// Log returns the original logger.
 	Log() log.Logger // original logger
 
 	Debug(ctx context.Context, msg string, kv ...log.KeyValue)
@@ -21,11 +23,12 @@ type Log interface {
 	Fatal(ctx context.Context, msg string, kv ...log.KeyValue)
 }
 
+// otellog is an implementation of the Log interface using OpenTelemetry.
 type otellog struct {
 	log log.Logger
 }
 
-func newLoggerProvider(ctx context.Context, otelAgentAddr string, res *resource.Resource, opts LoggerOptions) (*sdklog.LoggerProvider, error) {
+func newLoggerProvider(ctx context.Context, otelAgentAddr string, res *sdkresource.Resource, opts LoggerOptions) (*sdklog.LoggerProvider, error) {
 
 	exporter, err := otlploggrpc.New(ctx,
 		otlploggrpc.WithInsecure(),
@@ -43,7 +46,7 @@ func newLoggerProvider(ctx context.Context, otelAgentAddr string, res *resource.
 	return provider, nil
 }
 
-func newStdoutLoggerProvider(res *resource.Resource) (*sdklog.LoggerProvider, error) {
+func newStdoutLoggerProvider(res *sdkresource.Resource) (*sdklog.LoggerProvider, error) {
 	exporter, err := stdoutlog.New()
 	if err != nil {
 		return nil, err
