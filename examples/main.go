@@ -10,7 +10,6 @@ import (
 
 	"github.com/rorua/otelemetry"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -76,9 +75,9 @@ func handler(w http.ResponseWriter, req *http.Request) {
 
 	requestCount.Add(ctx, 1)
 
-	telemetry.Log().Info(ctx, "Request processed "+fmt.Sprintf("Sleep: %dms", sleep))
+	telemetry.Log().Info(ctx, "Request processed", otelemetry.LogAttribute("sleep", sleep))
 
-	span.AddEvent("sleep event", attribute.Int64("sleep", sleep))
+	span.AddEvent("sleep event", otelemetry.Attribute("sleep", sleep))
 
 	// do some tracing with new span on other func
 	doTraceWithNewSpan(ctx)
@@ -99,7 +98,7 @@ func doTraceWithNewSpan(ctx context.Context) {
 	sleep := rng.Int63n(100)
 	time.Sleep(time.Duration(sleep) * time.Millisecond)
 
-	span.AddEvent("event: trace with new span", attribute.Int64("sleep", sleep))
+	span.AddEvent("event: trace with new span", otelemetry.Attribute("sleep", sleep))
 }
 
 func doTraceWithCurrentSpan(ctx context.Context) {
@@ -112,7 +111,7 @@ func doTraceWithCurrentSpan(ctx context.Context) {
 	sleep := rng.Int63n(100)
 	time.Sleep(time.Duration(sleep) * time.Millisecond)
 
-	span.AddEvent("event: trace with current span", attribute.Int64("sleep", sleep))
+	span.AddEvent("event: trace with current span", otelemetry.Attribute("sleep", sleep))
 }
 
 func getResources() []resource.Option {
@@ -167,4 +166,3 @@ func makeRequest(ctx context.Context) {
 //	for key, value := range carrier {
 //		msg.Headers = append(msg.Headers, sarama.RecordHeader{Key: []byte(key), Value: []byte(value)})
 //	}
-//

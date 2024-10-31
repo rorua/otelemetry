@@ -3,6 +3,12 @@
 OTelemetry is a wrapper around (over gRPC) the [OpenTelemetry](https://opentelemetry.io/) library
 that provides a simple interface to instrument your code with telemetry.
 
+### ToDo
+- [ ] Add tests
+- [ ] Modified examples
+- [ ] TLS support
+- [ ] Add documentation
+
 ### Install
 
 ```shell
@@ -15,10 +21,7 @@ go get -u github.com/rorua/otelemetry
 Here is a simple example of how to use OTelemetry in your Go application:
 
 ```go
-
-import (
-	"github.com/rorua/otelemetry"
-)
+import "github.com/rorua/otelemetry"
 
 func main() {
 	// Configuration for OTelemetry
@@ -41,18 +44,15 @@ func main() {
 		log.Fatalf("failed to initialize telemetry: %v", err)
 	}
 	defer tel.Shutdown(context.Background())
-
-	// Use the telemetry instance
-	tracer := tel.Trace().Tracer()
-	meter := tel.Metric().Meter()
-	logger := tel.Log().Logger()
+	
+	// your code 
 }	
 ```
 
 Example usage of tracer and span:
 ```go
 // Example usage of tracer and span
-ctx, span := tracer.Start(context.Background(), "example-span")
+ctx, span := tel.Trace().StartSpan(context.Background(), "example-span")
 defer span.End()
 
 span.AddEvent("example event", attribute.String("key", "value"))
@@ -62,7 +62,7 @@ Example usage meter:
 
 ```go
 // Example usage meter
-counter, err := meter.Float64Counter("example_counter")
+counter, err := tel.Metric().Float64Counter("example_counter")
 if err != nil {
     panic(err)
 }
@@ -74,9 +74,9 @@ Example usage of logger:
 
 ```go
 // Example usage of logger
-logger.Info(ctx, "log message", attribute.String("key", "value"))
+tel.Log().Info(ctx, "log message", attribute.String("key", "value"))
 ```
 
 ### Contributing
 
-Pull requests are welcome. For any changes, please open an issue first to discuss what you would like to change.
+Pull requests are welcome.
