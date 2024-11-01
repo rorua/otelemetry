@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rorua/otelemetry"
+	"github.com/alifcapital/otelemetry"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/trace"

@@ -1,4 +1,4 @@
-module github.com/rorua/otelemetry
+module github.com/alifcapital/otelemetry
 
 go 1.23
 

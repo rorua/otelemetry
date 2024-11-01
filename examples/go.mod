@@ -1,9 +1,9 @@
-module github.com/rorua/otelemetry/examples
+module github.com/alifcapital/otelemetry/examples
 
 go 1.23.1
 
 require (
-	github.com/rorua/otelemetry v0.0.0-20241031095113-0f66fcdbe663
+	github.com/alifcapital/otelemetry v0.0.0-20241031095113-0f66fcdbe663
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.56.0
 	go.opentelemetry.io/otel v1.31.0
 	go.opentelemetry.io/otel/sdk v1.31.0

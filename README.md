@@ -12,7 +12,7 @@ that provides a simple interface to instrument your code with telemetry.
 ### Install
 
 ```shell
-go get -u github.com/rorua/otelemetry
+go get -u github.com/alifcapital/otelemetry
 ```
 
 
@@ -21,7 +21,7 @@ go get -u github.com/rorua/otelemetry
 Here is a simple example of how to use OTelemetry in your Go application:
 
 ```go
-import "github.com/rorua/otelemetry"
+import "github.com/alifcapital/otelemetry"
 
 func main() {
 	// Configuration for OTelemetry
