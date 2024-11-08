@@ -13,7 +13,6 @@ import (
 	"github.com/rorua/otelemetry"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/baggage"
-	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -185,8 +184,7 @@ func makeRequest2(ctx context.Context) {
 
 	// Вставляем заголовки трассировки и Baggage в запрос
 	reqHeaders := make(map[string]string)
-	span.Inject(ctx, propagation.MapCarrier(reqHeaders))
-	//otelemetry.Inject(ctx, reqHeaders)
+	otelemetry.Inject(ctx, reqHeaders)
 
 	// Отправляем запрос с req3
 	resp, err := client.R().

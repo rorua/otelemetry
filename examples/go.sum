@@ -63,6 +63,8 @@ github.com/rorua/otelemetry v0.0.0-20241031095113-0f66fcdbe663 h1:bslpnAehby3w2Y
 github.com/rorua/otelemetry v0.0.0-20241031095113-0f66fcdbe663/go.mod h1:Rdes4EjVJujkxjZtESeXJ1Sc2I9x9RzGcNtTGRf7uIk=
 github.com/rorua/otelemetry v0.0.0-20241101100349-a13346673650 h1:oEYs3T4IXiCGcaqS7o8OsqBk9C6Zk/zVu9qpw2+6Nkw=
 github.com/rorua/otelemetry v0.0.0-20241101100349-a13346673650/go.mod h1:Rdes4EjVJujkxjZtESeXJ1Sc2I9x9RzGcNtTGRf7uIk=
+github.com/rorua/otelemetry v0.0.0-20241108042359-e08f6bb2abd7 h1:aXvlVpZZHZjUL6CEGKsgNSJVefhzy3Y0gYeF91WmXqY=
+github.com/rorua/otelemetry v0.0.0-20241108042359-e08f6bb2abd7/go.mod h1:Rdes4EjVJujkxjZtESeXJ1Sc2I9x9RzGcNtTGRf7uIk=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
