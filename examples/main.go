@@ -4,12 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"time"
 
+	"github.com/imroc/req/v3"
 	"github.com/rorua/otelemetry"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/baggage"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -22,8 +26,8 @@ func main() {
 
 	cfg := otelemetry.Config{
 		Service: otelemetry.Service{
-			Name:      "my-service",
-			Namespace: "my-namespace",
+			Name:      "rorua/otelemetry/example",
+			Namespace: "rorua",
 			Version:   "1.0.0",
 		},
 		Collector: otelemetry.Collector{
@@ -126,7 +130,19 @@ func getResources() []resource.Option {
 func handler2(w http.ResponseWriter, req *http.Request) {
 
 	ctx, span := telemetry.Trace().StartSpan(context.Background(), "ExecuteRequest")
-	makeRequest(ctx)
+
+	// Добавляем globalTransactionID в Baggage
+	globalTransactionID, _ := baggage.NewMember("global_transaction_id", "12345")
+	someOtherData, _ := baggage.NewMember("some_other_data_key", "some_other_data_value")
+	bag, _ := baggage.New(globalTransactionID, someOtherData)
+	ctx = baggage.ContextWithBaggage(ctx, bag)
+
+	//ctx = otelemetry.AddBaggageItems(ctx, map[string]string{
+	//	"global_transaction_id": "12345",
+	//	"some_other_data_key":   "some_other_data_value",
+	//})
+
+	makeRequest2(ctx)
 	span.End()
 
 	if _, err := w.Write([]byte(fmt.Sprintf("Request send"))); err != nil {
@@ -159,10 +175,27 @@ func makeRequest(ctx context.Context) {
 	res.Body.Close()
 }
 
-//	carrier := propagation.MapCarrier{}
-//	propagator := otel.GetTextMapPropagator()
-//	propagator.Inject(spanContext, carrier)
-//
-//	for key, value := range carrier {
-//		msg.Headers = append(msg.Headers, sarama.RecordHeader{Key: []byte(key), Value: []byte(value)})
-//	}
+func makeRequest2(ctx context.Context) {
+
+	ctx, span := telemetry.Trace().StartSpan(ctx, "makeRequest")
+	defer span.End()
+
+	demoServerAddr := "http://localhost:9006/api/v1/hello-example"
+	client := req.C()
+
+	// Вставляем заголовки трассировки и Baggage в запрос
+	reqHeaders := make(map[string]string)
+	span.Inject(ctx, propagation.MapCarrier(reqHeaders))
+	//otelemetry.Inject(ctx, reqHeaders)
+
+	// Отправляем запрос с req3
+	resp, err := client.R().
+		SetHeaders(reqHeaders). // Устанавливаем заголовки трассировки и Baggage
+		Get(demoServerAddr)
+
+	if err != nil {
+		log.Fatalf("Failed to call demo service: %v", err)
+	}
+
+	log.Println("response from demo-service:", resp.String())
+}
