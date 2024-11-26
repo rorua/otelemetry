@@ -4,9 +4,11 @@ OTelemetry is a wrapper around (over gRPC) the [OpenTelemetry](https://opentelem
 that provides a simple interface to instrument your code with telemetry.
 
 ### ToDo
-- [ ] Add tests
-- [ ] Modified examples
+- [ ] Jetstream utils
+- [ ] RabbitMQ utils
 - [ ] TLS support
+- [ ] Add tests
+- [ ] Modify examples
 - [ ] Add documentation
 
 ### Install
@@ -33,6 +35,11 @@ func main() {
 			Host: "localhost",
 			Port: "4317",
 		},
+                TracerOptions: otelemetry.TracerOptions{
+                    ClientOption: []otlptracegrpc.Option{
+                        otlptracegrpc.WithCompressor("gzip"),
+                    },
+                },
 		WithTraces:  true,
 		WithMetrics: true,
 		WithLogs:    true,
@@ -55,7 +62,14 @@ Example usage of tracer and span:
 ctx, span := tel.Trace().StartSpan(context.Background(), "example-span")
 defer span.End()
 
-span.AddEvent("example event", attribute.String("key", "value"))
+span.AddEvent("example event", otelemetry.Attribute("key", "value"))
+```
+
+Get span from context:
+```go
+span := tel.Trace().SpanFromContext(ctx)
+
+span.AddEvent("example of continuing span get from context", otelemetry.Attribute("key", "value"))
 ```
 
 Example usage meter:
@@ -74,7 +88,28 @@ Example usage of logger:
 
 ```go
 // Example usage of logger
-tel.Log().Info(ctx, "log message", attribute.String("key", "value"))
+tel.Log().Info(ctx, "log message", otelemetry.LogAttribute("key", "value"))
+```
+
+
+Example of getting a context with tracing data from Nats message:
+
+```go
+
+import (
+    otelemetryutils "github.com/rorua/otelemetry/utils"
+)
+
+func (h *handler) SignedIn(msg jetstream.Msg) {
+    
+    ctx := otelemetryutils.GetNatsTraceContext(context.Background(), *msg)
+    
+    ctx, span := tel.Trace().StartSpan(ctx, "NatsHandler: user.SignedIn")
+    defer span.End()
+    
+    // code ...
+}
+
 ```
 
 ### Contributing
