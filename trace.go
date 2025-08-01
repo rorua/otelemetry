@@ -76,7 +76,7 @@ func newTraceProvider(ctx context.Context, otelAgentAddr string, res *sdkresourc
 }
 
 func newStdoutTraceProvider(res *sdkresource.Resource) (*sdktrace.TracerProvider, error) {
-	exporter, err := stdouttrace.New( /*stdouttrace.WithPrettyPrint()*/ )
+	exporter, err := stdouttrace.New( /*stdouttrace.WithPrettyPrint()*/)
 	if err != nil {
 		return nil, fmt.Errorf("creating stdout exporter: %w", err)
 	}
@@ -95,9 +95,9 @@ func traceClientOpts(otelAgentAddr string, opts ...otlptracegrpc.Option) []otlpt
 		otlptracegrpc.WithEndpoint(otelAgentAddr),
 	}
 
-	if len(opts) == 0 {
-		return options
+	if len(opts) > 0 {
+		options = append(options, opts...)
 	}
 
-	return opts
+	return options
 }
