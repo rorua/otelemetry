@@ -13,19 +13,19 @@ func GetBaggage(ctx context.Context) baggage.Baggage {
 
 // AddBaggageItem adds a key-value pair to the baggage.
 func AddBaggageItem(ctx context.Context, key, value string) context.Context {
+	b := baggage.FromContext(ctx)
 	m, _ := baggage.NewMember(key, value)
-	b, _ := baggage.New(m)
+	b, _ = b.SetMember(m)
 	return baggage.ContextWithBaggage(ctx, b)
 }
 
 // AddBaggageItems adds multiple key-value pairs to the baggage.
 func AddBaggageItems(ctx context.Context, items map[string]string) context.Context {
-	var members []baggage.Member
+	b := baggage.FromContext(ctx)
 	for key, value := range items {
 		m, _ := baggage.NewMember(key, value)
-		members = append(members, m)
+		b, _ = b.SetMember(m)
 	}
-	b, _ := baggage.New(members...)
 	return baggage.ContextWithBaggage(ctx, b)
 }
 
